@@ -1,0 +1,98 @@
+function interactiveProstheticArm
+%% Interactive 2D Prosthetic Arm 
+% Karla Winter Eilor - Portfolio Project 1
+
+clc; clear; close all;
+
+%Arm Parameters
+L1 = 5; L2 = 3;
+
+%Initial Joint Angles
+theta1 = pi/4; % Shoulder 45°
+theta2 = pi/6; % Elbow 30°
+
+%Trajectory Storage
+traj_x = [];
+traj_y = [];
+
+%Figure Setup
+f = figure('Name','Interactive 2D Prosthetic Arm','NumberTitle','off');
+axis equal; xlim([-10 10]); ylim([-1 10]); grid on; hold on;
+title('2D Prosthetic Arm Kinematics (Interactive)');
+xlabel('X'); ylabel('Y');
+
+%Compute Initial Positions
+elbow = [L1*cos(theta1), L1*sin(theta1)];
+hand  = [L1*cos(theta1)+L2*cos(theta1+theta2), L1*sin(theta1)+L2*sin(theta1+theta2)];
+
+%Plot Arm Segments
+h_upper = plot([0 elbow(1)], [0 elbow(2)], 'y','LineWidth',5);
+h_fore  = plot([elbow(1) hand(1)], [elbow(2) hand(2)], 'b','LineWidth',5);
+h_shoulder = plot(0,0,'ko','MarkerFaceColor','k','MarkerSize',10);
+h_elbow    = plot(elbow(1), elbow(2),'ko','MarkerFaceColor','k','MarkerSize',10);
+h_hand     = plot(hand(1), hand(2),'ko','MarkerFaceColor','k','MarkerSize',10);
+
+%Trajectory Plot
+h_traj = plot(NaN, NaN,'g--','LineWidth',1.5);
+
+%Sliders at the bottom
+s1 = uicontrol('Style','slider','Min',0,'Max',pi,'Value',theta1,...
+    'Position',[100 20 300 20],'Callback',@sliderCallback);
+s2 = uicontrol('Style','slider','Min',0,'Max',pi,'Value',theta2,...
+    'Position',[100 50 300 20],'Callback',@sliderCallback);
+
+uicontrol('Style','text','Position',[10 20 80 20],'String','Shoulder');
+uicontrol('Style','text','Position',[10 50 80 20],'String','Elbow');
+
+%Mouse Click Callback
+set(f,'WindowButtonDownFcn',@clickTarget);
+
+%% --- Nested Callback Functions ---
+
+    function sliderCallback(~,~)
+        theta1 = s1.Value;
+        theta2 = s2.Value;
+        updateArm(theta1,theta2);
+    end
+
+    function clickTarget(~,~)
+        C = get(gca,'CurrentPoint');
+        xd = C(1,1); yd = C(1,2);
+
+        r = sqrt(xd^2 + yd^2);
+        if r > (L1+L2)
+            xd = xd*(L1+L2)/r;
+            yd = yd*(L1+L2)/r;
+        end
+
+        cos_theta2 = (xd^2 + yd^2 - L1^2 - L2^2)/(2*L1*L2);
+        theta2_new = acos(max(min(cos_theta2,1),-1)); % Clamp
+        theta1_new = atan2(yd,xd) - atan2(L2*sin(theta2_new), L1 + L2*cos(theta2_new));
+
+        s1.Value = theta1_new;
+        s2.Value = theta2_new;
+
+        updateArm(theta1_new,theta2_new);
+    end
+
+    function updateArm(t1,t2)
+        % Forward Kinematics
+        elbow = [L1*cos(t1), L1*sin(t1)];
+        hand  = [L1*cos(t1)+L2*cos(t1+t2), L1*sin(t1)+L2*sin(t1+t2)];
+
+        % Update Plots
+        set(h_upper,'XData',[0 elbow(1)],'YData',[0 elbow(2)]);
+        set(h_fore,'XData',[elbow(1) hand(1)],'YData',[elbow(2) hand(2)]);
+        set(h_elbow,'XData',elbow(1),'YData',elbow(2));
+        set(h_hand,'XData',hand(1),'YData',hand(2));
+
+        % Update Trajectory
+        traj_x(end+1) = hand(1);
+        traj_y(end+1) = hand(2);
+        set(h_traj,'XData',traj_x,'YData',traj_y);
+
+        drawnow;
+    end
+
+end
+
