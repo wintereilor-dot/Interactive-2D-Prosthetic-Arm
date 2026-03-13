@@ -38,6 +38,12 @@ The simulation is useful for:
 
 ---
 
+## Tools
+- MATLAB – main programming environment
+- Uicontrol – for interactive sliders
+- Plot & scatter functions – for visualizing arm segments, joints, and hand trajectory
+- Forward and inverse kinematics algorithms – for computing joint positions and angles
+
 ## Getting Started
 
 1. Clone or download this repository.  
@@ -47,8 +53,3 @@ The simulation is useful for:
 ```matlab
 interactiveProstheticArm
 
-## Tools
-- MATLAB – main programming environment
-- Uicontrol – for interactive sliders
-- Plot & scatter functions – for visualizing arm segments, joints, and hand trajectory
-- Forward and inverse kinematics algorithms – for computing joint positions and angles
